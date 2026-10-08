@@ -1,0 +1,380 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>График отпусков 2027</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: фиксированная сцена морского пляжа (небо, море, песок) и поверх неё полупрозрачные панели:
+   список работников с правкой, годовая шкала, сводка по месяцам */
+:root{
+  --bg:#cfeaf4; --fg:#0f2a35; --muted:#47636f; --line:rgba(15,60,80,.18);
+  --surface:rgba(255,255,255,.9); --hover:#d7eef5;
+  --accent:#0a6f8f; --accent-soft:#d7eef5; --accent-fg:#ffffff;
+  --warn:#a8530c; --warn-soft:#fde9cf; --bad:#b3261e;
+  --sky1:#a9ddf2; --sky2:#e3f5fb; --sea1:#86d9de; --sea2:#1c93b0; --wave:rgba(255,255,255,.6);
+  --foam:#ffffff; --wet:#cdb27b; --sand1:#f3e3b8; --sand2:#e2c98e; --sun:#fff0b0; --sunglow:rgba(255,226,138,.6);
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1b33; --fg:#e8f1f5; --muted:#9db4be; --line:rgba(255,255,255,.16);
+    --surface:rgba(12,28,40,.9); --hover:#16394a;
+    --accent:#52c4d8; --accent-soft:#16394a; --accent-fg:#04202a;
+    --warn:#f0b35e; --warn-soft:#3a2c14; --bad:#ff8a80;
+    --sky1:#0b1b33; --sky2:#27406b; --sea1:#1a4f6b; --sea2:#0a2a45; --wave:rgba(160,210,240,.28);
+    --foam:#bcd7e6; --wet:#5c5238; --sand1:#6a5c40; --sand2:#4a4130; --sun:#e8eef7; --sunglow:rgba(200,220,255,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1b33; --fg:#e8f1f5; --muted:#9db4be; --line:rgba(255,255,255,.16);
+  --surface:rgba(12,28,40,.9); --hover:#16394a;
+  --accent:#52c4d8; --accent-soft:#16394a; --accent-fg:#04202a;
+  --warn:#f0b35e; --warn-soft:#3a2c14; --bad:#ff8a80;
+  --sky1:#0b1b33; --sky2:#27406b; --sea1:#1a4f6b; --sea2:#0a2a45; --wave:rgba(160,210,240,.28);
+  --foam:#bcd7e6; --wet:#5c5238; --sand1:#6a5c40; --sand2:#4a4130; --sun:#e8eef7; --sunglow:rgba(200,220,255,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:28px 56px;position:relative}
+/* Сцена */
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.scene svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sky{fill:url(#gSky)} .sea{fill:url(#gSea)} .sandf{fill:url(#gSand)}
+.wetf{fill:var(--wet)} .foam{fill:none;stroke:var(--foam);stroke-width:5;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.foam2{fill:none;stroke:var(--foam);stroke-width:2;opacity:.55;vector-effect:non-scaling-stroke}
+.wv{fill:none;stroke:var(--wave);stroke-width:2;vector-effect:non-scaling-stroke}
+.sun{position:absolute;top:7%;right:11%;width:76px;height:76px;border-radius:50%;background:var(--sun);box-shadow:0 0 0 14px var(--sunglow),0 0 70px 30px var(--sunglow)}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;min-width:0;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+header.panel{padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(26px,5vw,38px);line-height:1.1;margin:0;font-weight:600;text-wrap:balance}
+.sub{color:var(--muted);margin:0;max-width:65ch}
+h2{font-size:17px;margin:0;font-weight:600}
+.sec{display:flex;flex-direction:column;gap:10px;min-width:0}
+.sec-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.hint{font-size:13px;color:var(--muted)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:860px}
+th{font-family:var(--f-mono);font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--hover)}
+td.n{font-family:var(--f-mono);color:var(--muted);width:40px}
+td.t{width:110px}
+td.dt{width:150px}
+td.act{white-space:nowrap;text-align:right;width:150px}
+[contenteditable="plaintext-only"],[contenteditable="true"]{outline:none;border-radius:3px;padding:3px 6px;margin:-3px -6px;min-width:6ch;display:inline-block;max-width:100%;cursor:text}
+[contenteditable="plaintext-only"]:hover,[contenteditable="true"]:hover{box-shadow:inset 0 0 0 1px var(--line)}
+[contenteditable="plaintext-only"]:focus,[contenteditable="true"]:focus{box-shadow:0 0 0 2px var(--accent);background:var(--surface)}
+[data-f]:empty::before{content:attr(data-ph);color:var(--muted)}
+td.t [data-f]{font-family:var(--f-mono);font-size:13.5px}
+input[type=date]{font-family:var(--f-mono);font-size:13px;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:4px;padding:4px 6px;width:100%;min-height:30px}
+input[type=date]:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input[type=date]:disabled{border-color:transparent;opacity:1;color:var(--fg)}
+tr.bad input{border-color:var(--bad)}
+.pair{display:inline-block;font-family:var(--f-mono);font-size:11px;padding:1px 6px;border-radius:3px;background:var(--warn-soft);color:var(--warn);margin-right:6px}
+.btn{font:inherit;font-size:13px;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:4px;padding:5px 10px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:500}
+.btn.del{color:var(--muted);padding:3px 8px}
+.btn.del:hover{color:var(--bad);border-color:var(--bad)}
+.btn.del.ask{color:var(--bad);border-color:var(--bad);font-weight:500}
+.empty{padding:26px 12px;text-align:center;color:var(--muted)}
+.ro{font-size:12.5px;color:var(--warn)}
+/* Gantt */
+.g{min-width:760px;padding:14px 16px 10px}
+.g-months{display:grid;margin-left:150px;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.g-months span{padding-bottom:6px;border-left:1px solid var(--line);padding-left:5px}
+.g-row{display:flex;align-items:center;height:26px}
+.g-lab{width:150px;flex:none;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:10px}
+.g-lab b{font-family:var(--f-mono);font-weight:400;color:var(--muted);margin-right:6px}
+.g-track{position:relative;flex:1;height:100%}
+.g-track i{position:absolute;top:0;bottom:0;border-left:1px solid var(--line)}
+.g-bar{position:absolute;top:5px;height:16px;border-radius:3px;background:var(--accent);color:var(--accent-fg);font-family:var(--f-mono);font-size:10.5px;line-height:16px;padding-left:6px;overflow:hidden;white-space:nowrap}
+/* Месяцы */
+.months{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.m{padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.m-name{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.m-who{font-size:13px;min-height:2.9em}
+.m-who div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m.two{border-color:var(--warn)}
+.m-cnt{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.note{font-size:13px;color:var(--fg);padding:10px 14px;margin:0;max-width:80ch}
+@media (max-width:520px){.sun{right:6%;width:56px;height:56px}}
+</style>
+
+<div class="scene" aria-hidden="true">
+  <svg viewBox="0 0 1440 900" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky1)"/><stop offset="1" style="stop-color:var(--sky2)"/></linearGradient>
+      <linearGradient id="gSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sea1)"/><stop offset="1" style="stop-color:var(--sea2)"/></linearGradient>
+      <linearGradient id="gSand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sand1)"/><stop offset="1" style="stop-color:var(--sand2)"/></linearGradient>
+    </defs>
+    <rect class="sky" width="1440" height="900"/>
+    <rect class="sea" y="370" width="1440" height="360"/>
+    <path class="wv" d="M0 420 Q 90 408 180 420 T 360 420 T 540 420 T 720 420 T 900 420 T 1080 420 T 1260 420 T 1440 420"/>
+    <path class="wv" style="opacity:.8" d="M0 485 Q 110 470 220 485 T 440 485 T 660 485 T 880 485 T 1100 485 T 1320 485 T 1540 485"/>
+    <path class="wv" style="opacity:.6" d="M0 555 Q 130 538 260 555 T 520 555 T 780 555 T 1040 555 T 1300 555 T 1560 555"/>
+    <path class="wetf" d="M0 650 C 160 628 300 664 480 646 S 800 626 960 648 S 1280 664 1440 640 V900 H0 Z"/>
+    <path class="sandf" transform="translate(0,30)" d="M0 650 C 160 628 300 664 480 646 S 800 626 960 648 S 1280 664 1440 640 V900 H0 Z"/>
+    <path class="foam2" transform="translate(0,-16)" d="M0 650 C 160 628 300 664 480 646 S 800 626 960 648 S 1280 664 1440 640"/>
+    <path class="foam" d="M0 650 C 160 628 300 664 480 646 S 800 626 960 648 S 1280 664 1440 640"/>
+  </svg>
+  <div class="sun"></div>
+</div>
+
+<div class="wrap">
+  <header class="panel">
+    <div class="eyebrow">Календарный год 2027</div>
+    <h1>График отпусков</h1>
+    <p class="sub">Периоды отпусков рассчитаны с учётом государственных праздников Республики Казахстан. Список можно редактировать: менять данные, добавлять и удалять работников.</p>
+  </header>
+
+  <section class="sec">
+    <div class="sec-head">
+      <h2>Список работников</h2>
+      <div class="tools">
+        <span class="ro" id="ro" hidden>Только просмотр: у вас нет прав на изменение</span>
+        <span class="hint" id="cnt"></span>
+        <button class="btn primary" id="add" type="button">Добавить работника</button>
+      </div>
+    </div>
+    <div class="panel scroll">
+      <table>
+        <thead><tr><th>№</th><th>ФИО</th><th>Должность</th><th>Таб. №</th><th>Начало</th><th>Окончание</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Отпуска в течение года</h2><span class="hint">Полосы обновляются сразу после изменения дат</span></div>
+    <div class="panel scroll"><div class="g" id="gantt"></div></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Кто уходит в отпуск по месяцам</h2></div>
+    <div class="months" id="months"></div>
+    <p class="panel note" id="note"></p>
+  </section>
+</div>
+
+<script>
+(function(){
+  var MN=["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+  var MS=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+  var MD=[31,28,31,30,31,30,31,31,30,31,30,31];
+  var DEF=[["01-04","01-28"],["02-01","02-24"],["03-01","03-28"],["03-15","04-10"],["04-05","04-28"],["05-03","05-29"],["05-17","06-09"],["06-07","06-30"],["06-21","07-15"],["07-05","07-29"],["08-02","08-25"],["08-16","09-09"],["09-06","09-29"],["09-20","10-13"],["10-04","10-28"],["11-01","11-24"],["11-15","12-08"],["12-06","12-31"]];
+  function defRows(){return DEF.map(function(p,i){return {id:"d"+(i+1),n:"",p:"",t:pad(i+1),s:"2027-"+p[0],e:"2027-"+p[1],o:i+1};});}
+  function pad(n){return String(n).padStart(4,"0");}
+  var Y0=Date.UTC(2027,0,1),DAY=864e5;
+  function ymd(s){if(!/^\d{4}-\d{2}-\d{2}$/.test(s||""))return null;var a=s.split("-");return Date.UTC(+a[0],+a[1]-1,+a[2]);}
+  function dpos(s){return Math.min(364,Math.max(0,Math.round((ymd(s)-Y0)/DAY)));}
+  function short(s){var a=s.split("-");return a[2]+"."+a[1];}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function startMonth(r){var t=ymd(r.s);if(t===null)return 0;var d=new Date(t);return d.getUTCFullYear()===2027?d.getUTCMonth()+1:0;}
+
+  var rows=defRows(),view=[],store=null,readOnly=true,wantFocus=false,pend={},timers={},chain={};
+  var tb=document.getElementById("rows");
+
+  function sortRows(){view=rows.slice().sort(function(a,b){return (a.o||0)-(b.o||0)||(a.id<b.id?-1:1);});}
+  function label(r,i){return r.n||("Работник "+(i+1));}
+  function find(id){for(var i=0;i<rows.length;i++)if(rows[i].id===id)return rows[i];return null;}
+
+  /* ---------- хранилища ---------- */
+  function localStore(){
+    var K="vac27-local-v1",list=null;
+    try{list=JSON.parse(localStorage.getItem(K));}catch(e){}
+    if(!Array.isArray(list)||!list.length)list=defRows();
+    var cb=null;
+    function persist(){try{localStorage.setItem(K,JSON.stringify(list));}catch(e){}}
+    function emit(){if(cb)cb(list.map(function(r){return Object.assign({},r);}));}
+    return {local:true,
+      subscribe:function(f){cb=f;emit();return function(){cb=null;};},
+      patch:function(id,p){list.forEach(function(r){if(r.id===id)Object.assign(r,p);});persist();emit();return Promise.resolve();},
+      add:function(d){var id="l"+Date.now().toString(36);list.push(Object.assign({id:id},d));persist();emit();return Promise.resolve(id);},
+      remove:function(id){list=list.filter(function(r){return r.id!==id;});persist();emit();return Promise.resolve();}
+    };
+  }
+  function dbStore(db){
+    var col=db.collection("staff");
+    return {local:false,
+      subscribe:function(f,err){return col.onSnapshot(function(snap){f(snap.docs.map(function(d){var o=Object.assign({},d.data()||{});o.id=d.id;return o;}));},err);},
+      patch:function(id,p){return col.doc(id).update(p);},
+      add:function(d){var ref=col.doc();return ref.set(d).then(function(){return ref.id;});},
+      remove:function(id){return col.doc(id).delete();},
+      put:function(id,d){return col.doc(id).set(d);}
+    };
+  }
+
+  /* ---------- запись ---------- */
+  function onWriteErr(e){
+    if(e&&(e.code==="invalid_argument"||e.code==="revoked")){setReadOnly(true);}
+  }
+  function queue(id,patch){
+    pend[id]=Object.assign(pend[id]||{},patch);
+    clearTimeout(timers[id]);
+    timers[id]=setTimeout(function(){
+      var p=pend[id];delete pend[id];if(!p||!store)return;
+      chain[id]=(chain[id]||Promise.resolve()).then(function(){return store.patch(id,p);}).catch(onWriteErr);
+    },500);
+  }
+
+  /* ---------- таблица ---------- */
+  function makeRow(r){
+    var tr=document.createElement("tr");tr.dataset.id=r.id;
+    tr.innerHTML='<td class="n"></td>'+
+      '<td><span data-f="n" data-ph="ФИО работника"></span></td>'+
+      '<td><span data-f="p" data-ph="Должность"></span></td>'+
+      '<td class="t"><span data-f="t" data-ph="0000"></span></td>'+
+      '<td class="dt"><input type="date" data-f="s" aria-label="Начало отпуска" min="2027-01-01" max="2027-12-31"></td>'+
+      '<td class="dt"><input type="date" data-f="e" aria-label="Окончание отпуска" min="2027-01-01" max="2028-01-31"></td>'+
+      '<td class="act"><span class="pair" hidden></span><button class="btn del" type="button" data-del aria-label="Удалить работника">Удалить</button></td>';
+    return tr;
+  }
+  function renderTable(){
+    sortRows();
+    var have={};Array.prototype.forEach.call(tb.querySelectorAll("tr[data-id]"),function(tr){have[tr.dataset.id]=tr;});
+    var ids={};view.forEach(function(r){ids[r.id]=1;});
+    Object.keys(have).forEach(function(id){if(!ids[id])have[id].remove();});
+    var emp=document.getElementById("empty");
+    if(!view.length){
+      if(!emp){emp=document.createElement("tr");emp.id="empty";emp.innerHTML='<td colspan="7" class="empty">Список пуст. Нажмите «Добавить работника», чтобы создать первую строку.</td>';tb.appendChild(emp);}
+    }else if(emp){emp.remove();}
+    var cnt={};view.forEach(function(r){var m=startMonth(r);if(m)cnt[m]=(cnt[m]||0)+1;});
+    view.forEach(function(r,i){
+      var tr=have[r.id],fresh=false;
+      if(!tr){tr=makeRow(r);fresh=true;}
+      if(tb.children[i]!==tr)tb.insertBefore(tr,tb.children[i]||null);
+      tr.querySelector(".n").textContent=i+1;
+      Array.prototype.forEach.call(tr.querySelectorAll("[data-f]"),function(el){
+        var v=r[el.dataset.f]||"";
+        if(el.tagName==="INPUT"){el.disabled=readOnly;if(document.activeElement!==el&&el.value!==v)el.value=v;}
+        else{
+          if(document.activeElement!==el&&el.textContent!==v)el.textContent=v;
+          var want=readOnly?"false":"plaintext-only";
+          if(el.getAttribute("contenteditable")!==want){el.setAttribute("contenteditable",want);if(!readOnly&&el.contentEditable!=="plaintext-only")el.setAttribute("contenteditable","true");}
+        }
+      });
+      var m=startMonth(r),pair=tr.querySelector(".pair");
+      if(m&&cnt[m]>1){pair.hidden=false;pair.textContent=MS[m-1]+": "+cnt[m]+" чел.";}else pair.hidden=true;
+      tr.classList.toggle("bad",!!(r.s&&r.e&&r.e<r.s));
+      var del=tr.querySelector("[data-del]");del.hidden=readOnly;
+      if(fresh&&wantFocus&&!readOnly){wantFocus=false;setTimeout(function(){var f=tr.querySelector('[data-f="n"]');if(f)f.focus();},0);}
+    });
+    document.getElementById("cnt").textContent="Работников: "+view.length;
+    document.getElementById("add").hidden=readOnly;
+  }
+
+  /* ---------- шкала и сводка ---------- */
+  function drawGantt(){
+    var h='<div class="g-months" style="grid-template-columns:'+MD.map(function(d){return d+"fr";}).join(" ")+'">'+MS.map(function(m){return "<span>"+m+"</span>";}).join("")+'</div>';
+    var lines="",acc=0;
+    MD.forEach(function(d){lines+='<i style="left:'+(acc/365*100)+'%"></i>';acc+=d;});
+    view.forEach(function(r,i){
+      var bar="";
+      if(ymd(r.s)!==null&&ymd(r.e)!==null&&r.e>=r.s){
+        var a=dpos(r.s),b=dpos(r.e);
+        bar='<div class="g-bar" style="left:'+(a/365*100)+'%;width:'+((b-a+1)/365*100)+'%">'+short(r.s)+'–'+short(r.e)+'</div>';
+      }
+      h+='<div class="g-row"><div class="g-lab" title="'+esc(label(r,i))+'"><b>'+(i+1)+'</b>'+esc(label(r,i))+'</div><div class="g-track">'+lines+bar+'</div></div>';
+    });
+    if(!view.length)h+='<div class="empty">Нет данных</div>';
+    document.getElementById("gantt").innerHTML=h;
+  }
+  function drawMonths(){
+    var by={};view.forEach(function(r,i){var m=startMonth(r);if(m)(by[m]=by[m]||[]).push(i);});
+    var h="",multi=[];
+    for(var m=1;m<=12;m++){
+      var who=by[m]||[];if(who.length>1)multi.push(MN[m-1].toLowerCase());
+      h+='<div class="panel m'+(who.length>1?' two':'')+'"><div class="m-name">'+MN[m-1]+'</div><div class="m-who">'+
+        who.map(function(i){return "<div>"+(i+1)+". "+esc(label(view[i],i))+"</div>";}).join("")+'</div><div class="m-cnt">'+who.length+' чел.</div></div>';
+    }
+    document.getElementById("months").innerHTML=h;
+    var n=view.length,note=document.getElementById("note");
+    if(multi.length)note.textContent="Работников "+n+", а месяцев 12, поэтому одновременно уходят двое и более в месяцах: "+multi.join(", ")+".";
+    else note.textContent="В каждом месяце отпуск начинает не более одного работника.";
+  }
+  function renderAll(){renderTable();drawGantt();drawMonths();}
+
+  function setReadOnly(v){
+    readOnly=v;
+    document.getElementById("ro").hidden=!v||(store&&store.local);
+    renderTable();
+  }
+
+  /* ---------- события ---------- */
+  function rowOf(el){var tr=el.closest("tr[data-id]");return tr?find(tr.dataset.id):null;}
+  tb.addEventListener("input",function(e){
+    if(readOnly)return;
+    var el=e.target.closest("[data-f]");if(!el||el.tagName==="INPUT")return;
+    var r=rowOf(el);if(!r)return;
+    var v=el.textContent.replace(/\n/g," ");r[el.dataset.f]=v;
+    queue(r.id,(function(){var o={};o[el.dataset.f]=v;return o;})());
+    sortRows();drawGantt();drawMonths();
+  });
+  tb.addEventListener("change",function(e){
+    if(readOnly)return;
+    var el=e.target.closest("input[data-f]");if(!el)return;
+    var r=rowOf(el);if(!r)return;
+    r[el.dataset.f]=el.value;
+    var o={};o[el.dataset.f]=el.value;queue(r.id,o);
+    renderAll();
+  });
+  tb.addEventListener("keydown",function(e){
+    if(e.key==="Enter"&&e.target.matches("[data-f]")&&e.target.tagName!=="INPUT"){e.preventDefault();e.target.blur();}
+  });
+  tb.addEventListener("paste",function(e){
+    var el=e.target.closest("[data-f]");if(!el||el.tagName==="INPUT"||readOnly)return;
+    e.preventDefault();
+    var t=(e.clipboardData&&e.clipboardData.getData("text/plain")||"").replace(/\s+/g," ");
+    document.execCommand("insertText",false,t);
+  });
+  tb.addEventListener("click",function(e){
+    var b=e.target.closest("[data-del]");if(!b||readOnly)return;
+    var r=rowOf(b);if(!r)return;
+    if(!b.classList.contains("ask")){
+      b.classList.add("ask");b.textContent="Точно удалить?";
+      setTimeout(function(){b.classList.remove("ask");b.textContent="Удалить";},3500);
+      return;
+    }
+    store.remove(r.id).catch(onWriteErr);
+  });
+  document.getElementById("add").addEventListener("click",function(){
+    if(readOnly||!store)return;
+    var o=Math.max.apply(null,rows.map(function(r){return r.o||0;}).concat([0]))+1;
+    wantFocus=true;
+    store.add({n:"",p:"",t:pad(o),s:"",e:"",o:o}).catch(onWriteErr);
+  });
+
+  /* ---------- запуск ---------- */
+  function applyRows(list){
+    list.forEach(function(r){if(pend[r.id])Object.assign(r,pend[r.id]);});
+    rows=list;renderAll();
+  }
+  renderAll();
+  (async function(){
+    var db=null,user=null;
+    try{
+      if(window.claude&&claude.use){db=await claude.use("db");user=await claude.use("user");}
+    }catch(e){}
+    if(db){
+      store=dbStore(db);
+      var can=null;try{can=user&&user.can?user.can("data.write"):null;}catch(e){}
+      readOnly=(can===false);
+      document.getElementById("ro").hidden=!readOnly;
+      store.subscribe(applyRows,function(){setReadOnly(true);});
+    }else{
+      store=localStore();readOnly=false;
+      document.getElementById("ro").hidden=true;
+      store.subscribe(applyRows);
+    }
+  })();
+})();
+</script>
+
+</body></html>
